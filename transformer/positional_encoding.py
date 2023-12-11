@@ -2,7 +2,7 @@
 Author: wenjun-VCC
 Date: 2023-12-11 14:55:26
 LastEditors: wenjun-VCC
-LastEditTime: 2023-12-11 16:30:53
+LastEditTime: 2023-12-11 18:05:35
 FilePath: positional_encoding.py
 Description: __discription:__
 Email: wenjun.9707@gmail.com
@@ -13,13 +13,12 @@ import torch.nn as nn
 import matplotlib.pyplot as plt
 
 
-
 # input [bs, seqs, d_model]
 
 # Transformer
 # PE(pos, 2i)   = sin(pos / 10000^(2i/d_model))
 # PE(pos, 2i+1) = cos(pos / 10000^(2i/d_model))
-def pe_constant(seq_len, d_model):
+def constant_pe(seq_len, d_model, device='cpu'):
     assert d_model % 2 == 0, "Wrong dimension!"
     seq_len_vec = torch.arange(seq_len, dtype=torch.float32)
     position_embedding = torch.zeros(seq_len, d_model, dtype=torch.float32)
@@ -31,18 +30,25 @@ def pe_constant(seq_len, d_model):
     embed_cos = torch.cos(out)
     position_embedding[:,0::2] = embed_sin
     position_embedding[:,1::2] = embed_cos
-    return position_embedding
+    return position_embedding.to(device)
 
 
 # VIT
-def learnable_pe(seq_len, d_model):
+def learnable_pe(seq_len, d_model, device='cpu'):
+    '''
+    learnable position embedding from VIT
     
-    pass
+    return: Model
+    '''
+    position_embedding = nn.Embedding(seq_len, d_model)
+    nn.init.kaiming_normal_(position_embedding.weight)
+    return position_embedding.to(device)
+
 
 if __name__ == '__main__':
     seq_len = 64
     dim = 768
-    pe = pe_constant(seq_len, dim)
+    pe = constant_pe(seq_len, dim)
     # print(pe)
     tensor_np = pe.numpy()
     # 使用 Matplotlib 创建热图
